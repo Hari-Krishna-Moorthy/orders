@@ -147,24 +147,32 @@ make clean
 
 ---
 
-## System Design Overview
+## Stretch Goals
 
-1. **Publishers** send messages to topics.
-2. **Subscribers** register via WebSocket to receive topic messages in real time.
-3. **Topics** maintain subscriber lists in-memory.
-4. **Controller layer** handles event dispatching and acknowledgments.
-5. **Fiber + Goroutines** ensure efficient, concurrent handling of client connections.
+These enhancements improve system resilience, reliability, and usability.
 
----
+### 1. Backpressure Handling
+Implements **bounded per-subscriber queues** to prevent memory exhaustion.  
+When a subscriber is too slow, the system either:
+- **Drops the oldest messages** (default policy), or  
+- **Disconnects the client** with a `SLOW_CONSUMER` error if queue overflow persists.  
+This ensures fairness and protects overall system performance.
 
-## Future Enhancements
+### 2. Graceful Shutdown
+On shutdown, the server:
+- Stops accepting new connections and publish operations.  
+- Performs a **best-effort flush** of pending messages.  
+- Closes all WebSocket connections cleanly to prevent data loss.
 
-* Add Redis-based message persistence
-* Support message replay and durable queues
-* Introduce metrics dashboard with Prometheus + Grafana
-* Add role-based access control (RBAC)
+### 3. Message Replay
+Supports a **ring buffer (last 100 messages)** per topic.  
+Clients can request recent history using a `last_n` parameter (e.g., `last_n=10`) to replay recent events upon (re)subscription.
 
----
+### 4. Basic Authentication
+Adds lightweight **API key–based authentication** for REST and WebSocket endpoints using the `X-API-Key` header.  
+Unauthorized requests return a `401 Unauthorized` error.  
+Can be combined with JWT-based security for enhanced access control.
+
 
 ## Maintainer
 
