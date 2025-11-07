@@ -12,7 +12,7 @@ The system is written in **Golang** using **Fiber**, **GORM v2**, and **PostgreS
 
 ## ⚙️ Technologies Used
 
-* **Language:** Go 1.23+
+* **Language:** Go 1.24
 * **Web Framework:** [Fiber v2](https://github.com/gofiber/fiber)
 * **Database ORM:** [GORM v2](https://gorm.io)
 * **Database:** PostgreSQL

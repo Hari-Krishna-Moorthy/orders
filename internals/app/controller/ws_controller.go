@@ -60,7 +60,6 @@ func (h *WSController) Register(app *fiber.App) {
 					continue
 				}
 				_ = c.WriteJSON(serverResp{Type: "ack", Status: "ok", Topic: req.Topic, RequestID: req.RequestID, TS: time.Now()})
-				// optional replay
 				if req.LastN > 0 {
 					if msgs, _ := h.mgr.Replay(req.Topic, req.LastN); len(msgs) > 0 {
 						for _, m := range msgs {

@@ -1,4 +1,3 @@
-// internals/app/pubsub/pubsub.go
 package pubsub
 
 import (
@@ -6,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	error_types "github.com/Hari-Krishna-Moorthy/orders/internals/app/types"
+	"github.com/Hari-Krishna-Moorthy/orders/internals/app/types"
 )
 
 type Message struct {
@@ -35,15 +34,13 @@ type Manager struct {
 	Topics map[string]*Topic
 }
 
-func NewManager() *Manager {
-	return &Manager{Topics: map[string]*Topic{}}
-}
+func NewManager() *Manager { return &Manager{Topics: map[string]*Topic{}} }
 
 func (m *Manager) CreateTopic(name string, ringSize int) error {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
 	if _, ok := m.Topics[name]; ok {
-		return error_types.ALREADY_EXISTS_ERROR
+		return types.ALREADY_EXISTS_ERROR
 	}
 	if ringSize <= 0 {
 		ringSize = 1
@@ -62,7 +59,7 @@ func (m *Manager) DeleteTopic(name string) error {
 	defer m.Mu.Unlock()
 	t, ok := m.Topics[name]
 	if !ok {
-		return error_types.NOT_FOUND_ERROR
+		return types.NOT_FOUND_ERROR
 	}
 	for _, s := range t.Subs {
 		close(s.Quit)
@@ -106,7 +103,7 @@ func (m *Manager) Subscribe(topic, subID string, buf int) (*Subscriber, error) {
 	t, ok := m.Topics[topic]
 	m.Mu.RUnlock()
 	if !ok {
-		return nil, error_types.TOPIC_NOT_FOUND_ERROR
+		return nil, types.TOPIC_NOT_FOUND_ERROR
 	}
 	if buf <= 0 {
 		buf = 1
@@ -119,7 +116,7 @@ func (m *Manager) Subscribe(topic, subID string, buf int) (*Subscriber, error) {
 	t.Mu.Lock()
 	defer t.Mu.Unlock()
 	if _, exists := t.Subs[subID]; exists {
-		return nil, error_types.ALREADY_EXISTS_ERROR
+		return nil, types.ALREADY_EXISTS_ERROR
 	}
 	t.Subs[subID] = s
 	return s, nil
@@ -130,7 +127,7 @@ func (m *Manager) Unsubscribe(topic, subID string) error {
 	t, ok := m.Topics[topic]
 	m.Mu.RUnlock()
 	if !ok {
-		return error_types.TOPIC_NOT_FOUND_ERROR
+		return types.TOPIC_NOT_FOUND_ERROR
 	}
 	t.Mu.Lock()
 	defer t.Mu.Unlock()
@@ -146,9 +143,8 @@ func (m *Manager) Publish(topic string, msg Message) error {
 	t, ok := m.Topics[topic]
 	m.Mu.RUnlock()
 	if !ok {
-		return error_types.TOPIC_NOT_FOUND_ERROR
+		return types.TOPIC_NOT_FOUND_ERROR
 	}
-	// Save and fan out
 	t.Mu.Lock()
 	t.Ring.Value = msg
 	t.Ring = t.Ring.Next()
@@ -170,7 +166,7 @@ func (m *Manager) Replay(topic string, lastN int) ([]Message, error) {
 	t, ok := m.Topics[topic]
 	m.Mu.RUnlock()
 	if !ok {
-		return nil, error_types.TOPIC_NOT_FOUND_ERROR
+		return nil, types.TOPIC_NOT_FOUND_ERROR
 	}
 	if lastN <= 0 {
 		return nil, nil
@@ -183,7 +179,6 @@ func (m *Manager) Replay(topic string, lastN int) ([]Message, error) {
 	t.Mu.RLock()
 	defer t.Mu.RUnlock()
 
-	// iterate oldest -> newest
 	r := t.Ring
 	for i := 0; i < t.RingSize; i++ {
 		r = r.Prev()

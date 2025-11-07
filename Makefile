@@ -1,7 +1,6 @@
 APP_NAME=orders-api
 IMAGE_NAME=orders-api:latest
 
-
 setup:
 	go mod tidy
 
