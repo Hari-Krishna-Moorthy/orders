@@ -1,0 +1,15 @@
+app:
+  name: orders
+  env: dev
+  host: 0.0.0.0
+  port: 8080
+  ws_read_timeout_sec: 30
+  ws_write_timeout_sec: 30
+  subscriber_queue_size: 256 
+  replay_last_n: 100 
+
+
+jwt:
+  issuer: orders-app
+  access_secret: supersecretkey
+  access_ttl_minutes: 60
