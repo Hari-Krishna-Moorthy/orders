@@ -41,7 +41,13 @@ func main() {
 	// Health
 	start := time.Now()
 	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"uptime_sec": int(time.Since(start).Seconds())})
+		uptime := int(time.Since(start).Seconds())
+		topics, subs := psMgr.Counts()
+		return c.JSON(fiber.Map{
+			"uptime_sec":  uptime,
+			"topics":      topics,
+			"subscribers": subs,
+		})
 	})
 
 	// Auth

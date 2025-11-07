@@ -35,9 +35,9 @@ type Manager struct {
 	Topics map[string]*Topic
 }
 
-func NewManager() *Manager { return &Manager{Topics: map[string]*Topic{}} }
-
-// --- Topic management ---
+func NewManager() *Manager {
+	return &Manager{Topics: map[string]*Topic{}}
+}
 
 func (m *Manager) CreateTopic(name string, ringSize int) error {
 	m.Mu.Lock()
@@ -154,7 +154,6 @@ func (m *Manager) Publish(topic string, msg Message) error {
 	t.Ring = t.Ring.Next()
 	t.TotalEvents++
 	for _, s := range t.Subs {
-		// Backpressure policy: drop oldest in subscriber queue
 		select {
 		case s.Ch <- msg:
 		default:
@@ -196,4 +195,21 @@ func (m *Manager) Replay(topic string, lastN int) ([]Message, error) {
 		r = r.Next()
 	}
 	return msgs, nil
+}
+
+func (m *Manager) Counts() (topics int, subscribers int) {
+	m.Mu.RLock()
+	defer m.Mu.RUnlock()
+
+	topics = len(m.Topics)
+
+	uniq := make(map[string]struct{})
+	for _, t := range m.Topics {
+		t.Mu.RLock()
+		for id := range t.Subs {
+			uniq[id] = struct{}{}
+		}
+		t.Mu.RUnlock()
+	}
+	return topics, len(uniq)
 }
