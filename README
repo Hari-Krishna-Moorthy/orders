@@ -1,28 +1,40 @@
 # Orders Pub/Sub Application
 
-## 🧩 Overview
+## Overview
 
-This project implements an **in-memory Publish/Subscribe system** for managing multiple publishers and subscribers via **WebSockets** and **REST APIs**.
-It includes complete topic management, real-time event delivery, and safe concurrency for message distribution.
-All system state is in-memory — no external message brokers or databases are required.
+The **Orders Pub/Sub Application** is an **in-memory publish/subscribe system** built with **Golang**. It manages multiple publishers and subscribers through **WebSockets** and **REST APIs**, supporting real-time communication, safe concurrency, and topic-based message routing.
 
-The system is written in **Golang** using **Fiber**, **GORM v2**, and **PostgreSQL** for persistence (where applicable, e.g., user authentication).
-
----
-
-## ⚙️ Technologies Used
-
-* **Language:** Go 1.24
-* **Web Framework:** [Fiber v2](https://github.com/gofiber/fiber)
-* **Database ORM:** [GORM v2](https://gorm.io)
-* **Database:** PostgreSQL
-* **Configuration:** YAML via [Viper](https://github.com/spf13/viper)
-* **Authentication:** JWT (using [golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt))
-* **Containerization:** Docker & Docker Compose
+The system is designed for scalability and modularity — allowing seamless topic management, message delivery, and authentication — all without requiring external brokers.
+Persistence (for user authentication) is handled via **PostgreSQL**.
 
 ---
 
-## 🧩 Models
+## ⚙️ Tech Stack
+
+| Category             | Technology                                             |
+| -------------------- | ------------------------------------------------------ |
+| **Language**         | Go 1.24                                                |
+| **Web Framework**    | [Fiber v2](https://github.com/gofiber/fiber)           |
+| **Database ORM**     | [GORM v2](https://gorm.io)                             |
+| **Configuration**    | [Viper](https://github.com/spf13/viper) (YAML-based)   |
+| **Authentication**   | [golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt) |
+| **Containerization** | Docker & Docker Compose                                |
+
+---
+
+## Core Features
+
+* In-memory **Pub/Sub engine** (no external brokers)
+* Topic-based **message routing**
+* **Real-time** event delivery over WebSockets
+* **Thread-safe** concurrency handling
+* **JWT authentication**
+* Modular structure with **REST + WS endpoints**
+* **Dockerized** setup for easy deployment
+
+---
+
+##  Data Models
 
 ### **User**
 
@@ -37,7 +49,7 @@ The system is written in **Golang** using **Fiber**, **GORM v2**, and **PostgreS
 
 ---
 
-## 🌐 API Endpoints
+## API Endpoints
 
 ### **WebSocket Endpoint**
 
@@ -47,14 +59,14 @@ The system is written in **Golang** using **Fiber**, **GORM v2**, and **PostgreS
 
 #### **Supported Message Types**
 
-Client → Server:
+**Client → Server**
 
 * `subscribe`
 * `unsubscribe`
 * `publish`
 * `ping`
 
-Server → Client:
+**Server → Client**
 
 * `ack`
 * `event`
@@ -64,63 +76,40 @@ Server → Client:
 
 ---
 
-### **REST API Endpoints**
+### **REST Endpoints**
 
-| Method   | Endpoint            | Description          |
-| -------- | ------------------- | -------------------- |
-| `POST`   | `/topics`           | Create topic         |
-| `DELETE` | `/topics/:name`     | Delete topic         |
-| `GET`    | `/topics`           | List topics          |
-| `GET`    | `/health`           | System health check  |
-| `GET`    | `/stats`            | Show stats per topic |
-| `POST`   | `/api/auth/signup`  | Register new user    |
-| `POST`   | `/api/auth/signin`  | Log in user          |
-| `POST`   | `/api/auth/signout` | Log out (JWT)        |
+| Method   | Endpoint            | Description        |
+| -------- | ------------------- | ------------------ |
+| `POST`   | `/topics`           | Create topic       |
+| `DELETE` | `/topics/:name`     | Delete topic       |
+| `GET`    | `/topics`           | List topics        |
+| `GET`    | `/health`           | Health check       |
+| `GET`    | `/stats`            | Show topic stats   |
+| `POST`   | `/api/auth/signup`  | Register new user  |
+| `POST`   | `/api/auth/signin`  | Log in user        |
+| `POST`   | `/api/auth/signout` | Log out user (JWT) |
 
 ---
 
-## 🔐 Authentication
+## Authentication
 
 * Uses **JWT (HS256)** for stateless authentication.
-* JWT token is generated on successful `signin` or `signup`.
-* Clients must include:
+
+* Tokens are generated on successful **signup** or **signin**.
+
+* Protected routes require a valid token in the header:
 
   ```
   Authorization: Bearer <token>
   ```
-* Protected endpoints require the JWT middleware.
+
+* Token expiration and secret key are configurable in YAML.
 
 ---
 
-## ⚙️ Environment & Config (YAML)
+## Development & Deployment
 
-`configs/config.yaml`
-
-```yaml
-app:
-  name: orders
-  env: dev
-  host: 0.0.0.0
-  port: 8080
-
-jwt:
-  issuer: orders-app
-  access_secret: change-me
-  access_ttl_minutes: 60
-
-postgres:
-  host: localhost
-  port: 5432
-  user: postgres
-  password: postgres
-  dbname: orders
-  sslmode: disable
-  timezone: Asia/Kolkata
-```
-
----
-
-## 🐳 Docker & Make Commands
+### Local Setup
 
 #### **Install Dependencies**
 
@@ -128,30 +117,60 @@ postgres:
 make setup
 ```
 
-#### **Run Locally**
+#### **Run Application**
 
 ```bash
 make run
 ```
 
-#### **Run in Docker**
+---
 
-**Build the Docker image:**
+### Docker Setup
+
+#### **Build Docker Image**
 
 ```bash
 make docker-build
 ```
 
-**Run the Docker container:**
+#### **Run Docker Container**
 
 ```bash
 make docker-run
 ```
 
-#### **Clean Generated Files**
+#### **Clean Build Files**
 
 ```bash
 make clean
 ```
 
 ---
+
+## System Design Overview
+
+1. **Publishers** send messages to topics.
+2. **Subscribers** register via WebSocket to receive topic messages in real time.
+3. **Topics** maintain subscriber lists in-memory.
+4. **Controller layer** handles event dispatching and acknowledgments.
+5. **Fiber + Goroutines** ensure efficient, concurrent handling of client connections.
+
+---
+
+## Future Enhancements
+
+* Add Redis-based message persistence
+* Support message replay and durable queues
+* Introduce metrics dashboard with Prometheus + Grafana
+* Add role-based access control (RBAC)
+
+---
+
+## Maintainer
+
+**Author:** Hari Krishna Moorthy
+📧 [LinkedIn](https://www.linkedin.com/in/hari-krishna-moorthy/) | 💻 [GitHub](https://github.com/Hari-Krishna-Moorthy)
+
+---
+
+**License:** MIT © 2025 Hari Krishna Moorthy
