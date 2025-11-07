@@ -1,0 +1,157 @@
+# Orders Pub/Sub Application
+
+## 🧩 Overview
+
+This project implements an **in-memory Publish/Subscribe system** for managing multiple publishers and subscribers via **WebSockets** and **REST APIs**.
+It includes complete topic management, real-time event delivery, and safe concurrency for message distribution.
+All system state is in-memory — no external message brokers or databases are required.
+
+The system is written in **Golang** using **Fiber**, **GORM v2**, and **PostgreSQL** for persistence (where applicable, e.g., user authentication).
+
+---
+
+## ⚙️ Technologies Used
+
+* **Language:** Go 1.23+
+* **Web Framework:** [Fiber v2](https://github.com/gofiber/fiber)
+* **Database ORM:** [GORM v2](https://gorm.io)
+* **Database:** PostgreSQL
+* **Configuration:** YAML via [Viper](https://github.com/spf13/viper)
+* **Authentication:** JWT (using [golang-jwt/jwt/v5](https://github.com/golang-jwt/jwt))
+* **Containerization:** Docker & Docker Compose
+
+---
+
+## 🧩 Models
+
+### **User**
+
+| Field        | Type        | Description           |
+| ------------ | ----------- | --------------------- |
+| `id`         | `uint`      | Primary key           |
+| `email`      | `string`    | Unique email ID       |
+| `password`   | `string`    | Hashed password       |
+| `name`       | `string`    | User’s full name      |
+| `created_at` | `time.Time` | Creation timestamp    |
+| `updated_at` | `time.Time` | Last update timestamp |
+
+---
+
+## 🌐 API Endpoints
+
+### **WebSocket Endpoint**
+
+| Method | Path  | Description                                  |
+| ------ | ----- | -------------------------------------------- |
+| `WS`   | `/ws` | Handle publish, subscribe, unsubscribe, ping |
+
+#### **Supported Message Types**
+
+Client → Server:
+
+* `subscribe`
+* `unsubscribe`
+* `publish`
+* `ping`
+
+Server → Client:
+
+* `ack`
+* `event`
+* `error`
+* `pong`
+* `info`
+
+---
+
+### **REST API Endpoints**
+
+| Method   | Endpoint            | Description          |
+| -------- | ------------------- | -------------------- |
+| `POST`   | `/topics`           | Create topic         |
+| `DELETE` | `/topics/:name`     | Delete topic         |
+| `GET`    | `/topics`           | List topics          |
+| `GET`    | `/health`           | System health check  |
+| `GET`    | `/stats`            | Show stats per topic |
+| `POST`   | `/api/auth/signup`  | Register new user    |
+| `POST`   | `/api/auth/signin`  | Log in user          |
+| `POST`   | `/api/auth/signout` | Log out (JWT)        |
+
+---
+
+## 🔐 Authentication
+
+* Uses **JWT (HS256)** for stateless authentication.
+* JWT token is generated on successful `signin` or `signup`.
+* Clients must include:
+
+  ```
+  Authorization: Bearer <token>
+  ```
+* Protected endpoints require the JWT middleware.
+
+---
+
+## ⚙️ Environment & Config (YAML)
+
+`configs/config.yaml`
+
+```yaml
+app:
+  name: orders
+  env: dev
+  host: 0.0.0.0
+  port: 8080
+
+jwt:
+  issuer: orders-app
+  access_secret: change-me
+  access_ttl_minutes: 60
+
+postgres:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: orders
+  sslmode: disable
+  timezone: Asia/Kolkata
+```
+
+---
+
+## 🐳 Docker & Make Commands
+
+#### **Install Dependencies**
+
+```bash
+make setup
+```
+
+#### **Run Locally**
+
+```bash
+make run
+```
+
+#### **Run in Docker**
+
+**Build the Docker image:**
+
+```bash
+make docker-build
+```
+
+**Run the Docker container:**
+
+```bash
+make docker-run
+```
+
+#### **Clean Generated Files**
+
+```bash
+make clean
+```
+
+---
