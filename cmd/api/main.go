@@ -57,10 +57,10 @@ func main() {
 	auth.Post("/signout", middleware.JWT(), authCtrl.SignOut)
 
 	// Topics (REST)
-	app.Post("/topics", topicCtrl.Create)
-	app.Delete("/topics/:name", topicCtrl.Delete)
-	app.Get("/topics", topicCtrl.List)
-	app.Get("/stats", topicCtrl.Stats)
+	app.Post("/topics", middleware.JWT(), topicCtrl.Create)
+	app.Delete("/topics/:name", middleware.JWT(), topicCtrl.Delete)
+	app.Get("/topics", middleware.JWT(), topicCtrl.List)
+	app.Get("/stats", middleware.JWT(), topicCtrl.Stats)
 
 	// WebSocket
 	wsCtrl.Register(app)

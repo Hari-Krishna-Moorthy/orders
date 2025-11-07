@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 
+	"github.com/Hari-Krishna-Moorthy/orders/internals/app/middleware"
 	"github.com/Hari-Krishna-Moorthy/orders/internals/app/pubsub"
 	"github.com/Hari-Krishna-Moorthy/orders/internals/app/types"
 	"github.com/Hari-Krishna-Moorthy/orders/internals/platform/config"
@@ -44,7 +45,7 @@ type serverResp struct {
 
 func (h *WSController) Register(app *fiber.App) {
 	cfg := config.Get()
-	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
+	app.Get("/ws", middleware.JWT(), websocket.New(func(c *websocket.Conn) {
 		c.SetReadDeadline(time.Now().Add(time.Duration(cfg.App.WSReadTimeoutSec) * time.Second))
 		defer c.Close()
 		for {

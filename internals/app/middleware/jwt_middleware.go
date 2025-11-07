@@ -18,3 +18,4 @@ func JWT() fiber.Handler {
 		},
 	})
 }
+ 
